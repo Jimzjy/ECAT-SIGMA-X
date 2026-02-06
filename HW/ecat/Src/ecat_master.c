@@ -781,7 +781,7 @@ int ECAT_SDORead(uint16_t slave, uint16_t index, uint8_t subIndex,
  * @param index SDO索引
  * @param subIndex SDO子索引
  * @param data 要写入的数据
- * @param dataSize 数据大小(最大4字节)
+ * @param dataSize 数据大小(最大16字节)
  * @param timeout 超时时间(ms)
  * @return ECAT_OK成功，其他失败
  */
@@ -794,8 +794,8 @@ int ECAT_SDOWrite(uint16_t slave, uint16_t index, uint8_t subIndex,
     int ret;
     uint8_t smStatus;
     
-    /* 只支持加速传输(最大4字节) */
-    if (dataSize < 1 || dataSize > 4)
+    /* 支持1-16字节传输 */
+    if (dataSize < 1 || dataSize > 16)
     {
         return ECAT_ERROR;
     }
@@ -879,7 +879,6 @@ int ECAT_SDOWrite(uint16_t slave, uint16_t index, uint8_t subIndex,
     
     /* 邮箱头 (6字节) */
     mbxHdr = (ECAT_MbxHeader_t *)mbxData;
-    mbxHdr->length = 10;  /* CoE头(2) + SDO命令(1) + 索引(2) + 子索引(1) + 数据(4) = 10 */
     mbxHdr->address = 0;
     mbxHdr->channel_priority = 0;
     mbxHdr->type_cnt = (EC_MAILBOX_COE & 0x0F) | ((mbxCnt << 4) & 0xF0);
@@ -888,15 +887,27 @@ int ECAT_SDOWrite(uint16_t slave, uint16_t index, uint8_t subIndex,
     /* SDO下载请求头 */
     ECAT_SDOHeader_t *sdoHdr = (ECAT_SDOHeader_t *)&mbxData[sizeof(ECAT_MbxHeader_t)];
     sdoHdr->coe_header = (COE_SDOREQ << 12);  /* CoE 类型: SDO请求 */
-    
-    /* 加速传输命令: 0x2F(1字节), 0x2B(2字节), 0x27(3字节), 0x23(4字节) */
-    sdoHdr->command = SDO_INIT_DOWNLOAD_REQ | ((4 - dataSize) << 2);
     sdoHdr->index = index;
     sdoHdr->subIndex = subIndex;
     
-    /* 复制数据到size字段 */
-    sdoHdr->size = 0;
-    memcpy(&sdoHdr->size, data, dataSize);
+    if (dataSize <= 4)
+    {
+        /* 加速传输 (Expedited): 数据放在size字段 */
+        /* 命令: 0x2F(1字节), 0x2B(2字节), 0x27(3字节), 0x23(4字节) */
+        sdoHdr->command = SDO_INIT_DOWNLOAD_EXP | ((4 - dataSize) << 2);
+        sdoHdr->size = 0;
+        memcpy(&sdoHdr->size, data, dataSize);
+        mbxHdr->length = 10;  /* CoE头(2) + SDO头(8) = 10 */
+    }
+    else
+    {
+        /* 正常传输 (Normal): 数据跟在SDO头之后 */
+        sdoHdr->command = SDO_INIT_DOWNLOAD_NOR;  /* e=0, s=1 */
+        sdoHdr->size = dataSize;  /* 数据大小 */
+        /* 复制数据到SDO头之后 */
+        memcpy(&mbxData[sizeof(ECAT_MbxHeader_t) + sizeof(ECAT_SDOHeader_t)], data, dataSize);
+        mbxHdr->length = 10 + dataSize;  /* CoE头(2) + SDO头(8) + 数据 */
+    }
     
     /* 写入邮箱 */
     ret = ECAT_WriteReg(adp, slv->mbxRxAddr, mbxData, slv->mbxRxSize, 100);

@@ -83,7 +83,8 @@
 
 /* SDO命令 */
 #define SDO_INIT_UPLOAD_REQ     0x40
-#define SDO_INIT_DOWNLOAD_REQ   0x23  /* 加速下载请求(4字节) */
+#define SDO_INIT_DOWNLOAD_EXP   0x23  /* 加速下载请求(≤4字节) */
+#define SDO_INIT_DOWNLOAD_NOR   0x21  /* 正常下载请求(>4字节) */
 #define SDO_ABORT               0x80
 
 /* 返回值 */
