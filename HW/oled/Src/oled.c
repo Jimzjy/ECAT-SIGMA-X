@@ -774,3 +774,71 @@ void OLED_PrintString(uint8_t x, uint8_t y, char *str, const Font *font, OLED_Co
     }
   }
 }
+
+//
+static uint8_t GetUTF8LenLocal(const char *string)
+{
+  if ((string[0] & 0x80) == 0x00)
+  {
+    return 1;
+  }
+  else if ((string[0] & 0xE0) == 0xC0)
+  {
+    return 2;
+  }
+  else if ((string[0] & 0xF0) == 0xE0)
+  {
+    return 3;
+  }
+  else if ((string[0] & 0xF8) == 0xF0)
+  {
+    return 4;
+  }
+  return 0;
+}
+
+static uint16_t GetTextWidth(const char *str, const Font *font)
+{
+  if (str == NULL || font == NULL)
+  {
+    return 0;
+  }
+
+  uint16_t width = 0;
+  uint16_t i = 0;
+  while (str[i])
+  {
+    uint8_t utf8Len = GetUTF8LenLocal(str + i);
+    if (utf8Len == 0)
+    {
+      break;
+    }
+
+    if (utf8Len == 1)
+    {
+      width += font->ascii ? font->ascii->w : font->w;
+    }
+    else
+    {
+      width += font->w;
+    }
+    i += utf8Len;
+  }
+
+  return width;
+}
+
+static uint8_t GetCenteredX(const char *str, const Font *font, uint8_t areaX, uint8_t areaW)
+{
+  uint16_t width = GetTextWidth(str, font);
+  if (width >= areaW)
+  {
+    return areaX;
+  }
+  return (uint8_t)(areaX + ((areaW - width) / 2));
+}
+
+void OLED_PrintCenterString(uint8_t area_x, uint8_t area_w, uint8_t y, char *str, const Font *font, OLED_ColorMode color) {
+  uint8_t x = GetCenteredX(str, font, area_x, area_w);
+  OLED_PrintString(x, y, str, font, color);
+}

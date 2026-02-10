@@ -134,7 +134,7 @@ void refreshScreen(void);
 static void ECAT_DisplayStatus(const char *status, int progress)
 {
     OLED_NewFrame();
-    OLED_PrintString(0, 0, (char *)status, &font16x16, OLED_COLOR_NORMAL);
+    OLED_PrintCenterString(0, 128, 0, (char *)status, &font16x16, OLED_COLOR_NORMAL);
     if (progress >= 0)
     {
         /* 绘制进度条背景 */
@@ -153,16 +153,16 @@ static void ECAT_DisplayStatus(const char *status, int progress)
 */
 static void showDialog(uint8_t dialogType, const char *text0, const char *text1) {
   OLED_NewFrame();
-  OLED_PrintString(2, 2, (char *)text0, &font16x16, OLED_COLOR_NORMAL);
-  OLED_PrintString(2, 18, (char *)text1, &font16x16, OLED_COLOR_NORMAL);
+  OLED_PrintCenterString(0, 128, 2, (char *)text0, &font16x16, OLED_COLOR_NORMAL);
+  OLED_PrintCenterString(0, 128, 18, (char *)text1, &font16x16, OLED_COLOR_NORMAL);
 
   switch (dialogType) {
   case 0:
-    OLED_PrintString(2, 44, "取消", &font16x16, (dialogSelectIndex == 0) ? OLED_COLOR_REVERSED : OLED_COLOR_NORMAL);
-    OLED_PrintString(70, 44, "确认", &font16x16, (dialogSelectIndex == 1) ? OLED_COLOR_REVERSED : OLED_COLOR_NORMAL);
+    OLED_PrintCenterString(0, 64, 44, "取消", &font16x16, (dialogSelectIndex == 0) ? OLED_COLOR_REVERSED : OLED_COLOR_NORMAL);
+    OLED_PrintCenterString(64, 64, 44, "确认", &font16x16, (dialogSelectIndex == 1) ? OLED_COLOR_REVERSED : OLED_COLOR_NORMAL);
     break;
   case 1:
-    OLED_PrintString(40, 44, "确认", &font16x16, OLED_COLOR_REVERSED);
+    OLED_PrintCenterString(0, 128, 44, "确认", &font16x16, OLED_COLOR_REVERSED);
     break;
   }
 
@@ -557,9 +557,9 @@ int writeParam(void) {
 void showParamMenu(void) {
   OLED_NewFrame();
 
-  sprintf(displayBuf, "Pn %03X", currentParam.paramIndex & 0xDFFF);
-  OLED_PrintASCIIString(2, 2, displayBuf, &afont16x8, OLED_COLOR_NORMAL);
-  OLED_DrawLine(42 - currentParam.selectParamBit * 8, 20, 50 - currentParam.selectParamBit * 8, 20, OLED_COLOR_NORMAL);
+  sprintf(displayBuf, "Pn%03X", currentParam.paramIndex & 0xDFFF);
+  OLED_PrintASCIIString(2, 2, displayBuf, &afont24x12, OLED_COLOR_NORMAL);
+  OLED_DrawLine(50 - currentParam.selectParamBit * 12, 28, 62 - currentParam.selectParamBit * 12, 28, OLED_COLOR_NORMAL);
 
   OLED_ShowFrame();
 }
@@ -568,9 +568,9 @@ void showParamReadStatus(void) {
   btnLock();
 
   OLED_NewFrame();
-  sprintf(displayBuf, "Pn %03X", currentParam.paramIndex & 0xDFFF);
-  OLED_PrintASCIIString(2, 2, displayBuf, &afont16x8, OLED_COLOR_NORMAL);
-  OLED_PrintString(2, 30, "读取中...", &font16x16, OLED_COLOR_NORMAL);
+  sprintf(displayBuf, "Pn%03X", currentParam.paramIndex & 0xDFFF);
+  OLED_PrintASCIIString(2, 2, displayBuf, &afont24x12, OLED_COLOR_NORMAL);
+  OLED_PrintString(2, 32, "读取中...", &font16x16, OLED_COLOR_NORMAL);
   OLED_ShowFrame();
 
   const ParameterRule *rule = FindParameterRule(currentParam.paramIndex);
@@ -588,9 +588,9 @@ void showParamReadStatus(void) {
   int ret = readParam();
   if (ret != ECAT_OK) {
     OLED_NewFrame();
-    sprintf(displayBuf, "Pn %03X", currentParam.paramIndex & 0xDFFF);
-    OLED_PrintASCIIString(2, 2, displayBuf, &afont16x8, OLED_COLOR_NORMAL);
-    OLED_PrintString(2, 30, "读取失败", &font16x16, OLED_COLOR_NORMAL);
+    sprintf(displayBuf, "Pn%03X", currentParam.paramIndex & 0xDFFF);
+    OLED_PrintASCIIString(2, 2, displayBuf, &afont24x12, OLED_COLOR_NORMAL);
+    OLED_PrintString(2, 32, "读取失败", &font16x16, OLED_COLOR_NORMAL);
     OLED_ShowFrame();
 
     btnUnlock();
@@ -606,20 +606,20 @@ void showParamReadStatus(void) {
 void showParamEdit(void) {
   OLED_NewFrame();
 
-  sprintf(displayBuf, "Pn %03X", currentParam.paramIndex & 0xDFFF);
-  OLED_PrintASCIIString(2, 2, displayBuf, &afont16x8, OLED_COLOR_NORMAL);
+  sprintf(displayBuf, "Pn%03X", currentParam.paramIndex & 0xDFFF);
+  OLED_PrintASCIIString(2, 2, displayBuf, &afont24x12, OLED_COLOR_NORMAL);
   switch (currentParam.displayFormat) {
     case DISPLAY_FORMAT_BYTE_ARRAY:
       switch (currentParam.dataSize) {
       case 2:
         sprintf(paramDisplayBuf, "%04X", currentParam.rawData);
-        OLED_PrintASCIIString(2, 30, paramDisplayBuf, &afont16x8, OLED_COLOR_NORMAL);
-        OLED_DrawLine(26 - currentParam.selectDisplayBit * 8, 48, 34 - currentParam.selectDisplayBit * 8, 48, OLED_COLOR_NORMAL);
+        OLED_PrintASCIIString(2, 32, paramDisplayBuf, &afont24x12, OLED_COLOR_NORMAL);
+        OLED_DrawLine(38 - currentParam.selectDisplayBit * 12, 58, 50 - currentParam.selectDisplayBit * 12, 58, OLED_COLOR_NORMAL);
         break;
       case 4:
         sprintf(paramDisplayBuf, "%08X", currentParam.rawData);
-        OLED_PrintASCIIString(2, 30, paramDisplayBuf, &afont16x8, OLED_COLOR_NORMAL);
-        OLED_DrawLine(58 - currentParam.selectDisplayBit * 8, 48, 66 - currentParam.selectDisplayBit * 8, 48, OLED_COLOR_NORMAL);
+        OLED_PrintASCIIString(2, 32, paramDisplayBuf, &afont24x12, OLED_COLOR_NORMAL);
+        OLED_DrawLine(86 - currentParam.selectDisplayBit * 12, 58, 98 - currentParam.selectDisplayBit * 12, 58, OLED_COLOR_NORMAL);
         break;
       }
       break;
@@ -627,13 +627,13 @@ void showParamEdit(void) {
       switch (currentParam.dataSize) {
       case 2:
         sprintf(paramDisplayBuf, "%05d", currentParam.rawData);
-        OLED_PrintASCIIString(2, 30, paramDisplayBuf, &afont16x8, OLED_COLOR_NORMAL);
-        OLED_DrawLine(34 - currentParam.selectDisplayBit * 8, 48, 42 - currentParam.selectDisplayBit * 8, 48, OLED_COLOR_NORMAL);
+        OLED_PrintASCIIString(2, 32, paramDisplayBuf, &afont24x12, OLED_COLOR_NORMAL);
+        OLED_DrawLine(50 - currentParam.selectDisplayBit * 12, 58, 62 - currentParam.selectDisplayBit * 12, 58, OLED_COLOR_NORMAL);
         break;
       case 4:
         sprintf(paramDisplayBuf, "%010d", currentParam.rawData);
-        OLED_PrintASCIIString(2, 30, paramDisplayBuf, &afont16x8, OLED_COLOR_NORMAL);
-        OLED_DrawLine(74 - currentParam.selectDisplayBit * 8, 48, 82 - currentParam.selectDisplayBit * 8, 48, OLED_COLOR_NORMAL);
+        OLED_PrintASCIIString(2, 32, paramDisplayBuf, &afont24x12, OLED_COLOR_NORMAL);
+        OLED_DrawLine(110 - currentParam.selectDisplayBit * 12, 58, 112 - currentParam.selectDisplayBit * 12, 58, OLED_COLOR_NORMAL);
         break;
       }
       break;
@@ -646,7 +646,7 @@ void showParamEditResult(void) {
   btnLock();
 
   OLED_NewFrame();
-  OLED_PrintString(2, 2, "写入参数中...", &font16x16, OLED_COLOR_NORMAL);
+  OLED_PrintCenterString(0, 128, 24, "写入参数中...", &font16x16, OLED_COLOR_NORMAL);
   OLED_ShowFrame();
 
   int ret = writeParam();

@@ -4,6 +4,7 @@
 #include "font.h"
 #include "main.h"
 #include "string.h"
+#include <stdint.h>
 
 typedef enum {
   OLED_COLOR_NORMAL = 0, // 正常模式 黑底白字
@@ -31,5 +32,6 @@ void OLED_DrawImage(uint8_t x, uint8_t y, const Image *img, OLED_ColorMode color
 void OLED_PrintASCIIChar(uint8_t x, uint8_t y, char ch, const ASCIIFont *font, OLED_ColorMode color);
 void OLED_PrintASCIIString(uint8_t x, uint8_t y, char *str, const ASCIIFont *font, OLED_ColorMode color);
 void OLED_PrintString(uint8_t x, uint8_t y, char *str, const Font *font, OLED_ColorMode color);
+void OLED_PrintCenterString(uint8_t area_x, uint8_t area_w, uint8_t y, char *str, const Font *font, OLED_ColorMode color);
 
 #endif // __OLED_H__
