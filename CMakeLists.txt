@@ -34,6 +34,16 @@ enable_language(C ASM)
 # Create an executable object type
 add_executable(${CMAKE_PROJECT_NAME})
 
+# Generate a .hex file alongside the .elf
+add_custom_command(
+    TARGET ${CMAKE_PROJECT_NAME}
+    POST_BUILD
+    COMMAND ${CMAKE_OBJCOPY} -O ihex
+            $<TARGET_FILE:${CMAKE_PROJECT_NAME}>
+            $<TARGET_FILE_DIR:${CMAKE_PROJECT_NAME}>/$<TARGET_FILE_BASE_NAME:${CMAKE_PROJECT_NAME}>.hex
+    COMMENT "Generating HEX: $<TARGET_FILE_BASE_NAME:${CMAKE_PROJECT_NAME}>.hex"
+)
+
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx)
 
@@ -52,6 +62,9 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/HW/w5500/Src/w5500.c
     # EtherCAT主站
     ${CMAKE_CURRENT_SOURCE_DIR}/HW/ecat/Src/ecat_master.c
+    # 
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/mprint.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/ecat_params.c
 )
 
 # Add include paths
@@ -65,6 +78,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
 # Add project symbols (macros)
 target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined symbols
+    $<$<CONFIG:Debug>:DEBUG>
 )
 
 # Remove wrong libob.a library dependency when using cpp files

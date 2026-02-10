@@ -76,7 +76,7 @@ void OLED_Init()
 
   OLED_SendCmd(0xB0);
 
-  OLED_SendCmd(0xC8);
+  OLED_SendCmd(0xC0);
 
   OLED_SendCmd(0x00);
   OLED_SendCmd(0x10);
@@ -86,7 +86,7 @@ void OLED_Init()
   OLED_SendCmd(0x81);
 
   OLED_SendCmd(0xDF);
-  OLED_SendCmd(0xA1);
+  OLED_SendCmd(0xA0);
 
   OLED_SendCmd(0xA6);
   OLED_SendCmd(0xA8);

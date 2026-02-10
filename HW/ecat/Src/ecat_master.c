@@ -750,7 +750,7 @@ int ECAT_SDORead(uint16_t slave, uint16_t index, uint8_t subIndex,
     int size = 0;
     uint8_t sizeIndicator = sdoHdr->command & 0x0F;
     
-    if (sdoHdr->command & 0x01)  /* 加速传输 */
+    if (sdoHdr->command & 0x02)  /* 加速传输 (检查e位: bit1) */
     {
         /* 数据在size字段中 */
         size = 4 - ((sizeIndicator >> 2) & 0x03);
