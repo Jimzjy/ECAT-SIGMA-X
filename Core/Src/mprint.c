@@ -1,6 +1,6 @@
 #include "mprint.h"
 
-static char mprintf_buffer[256];
+static char mprintf_buffer[50];
 static volatile uint8_t dma_tx_complete = 1;
 
 void mprintf(const char *format, ...) {
@@ -10,7 +10,7 @@ void mprintf(const char *format, ...) {
   int len = vsnprintf(mprintf_buffer, sizeof(mprintf_buffer), format, args);
   va_end(args);
 
-  if (len > 0 && len < 256) {
+  if (len > 0 && len < 50) {
     uint32_t timeout = 1000000;
     while (!dma_tx_complete && timeout--) {
       __NOP();

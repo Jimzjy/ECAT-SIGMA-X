@@ -21,6 +21,7 @@
 #include "dma.h"
 #include "i2c.h"
 #include "spi.h"
+#include "stm32f1xx_hal.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -51,7 +52,7 @@
 
 #define MENU_ITEM_HEIGHT 18
 #define MENU_TOTAL_HEIGHT 64
-#define MAIN_MENU_SIZE 4
+#define MAIN_MENU_SIZE 5
 #define IMPORT_MENU_SIZE 2
 
 typedef struct MainMenu {
@@ -88,7 +89,8 @@ static MainMenu mainMenu = {
     "重新连接",
     "参数查看/修改",
     "参数批量写入",
-    "编码器复位"
+    "编码器复位",
+    "参数初始化"
   },
   .selectIndex = 0
 };
@@ -175,9 +177,10 @@ static int ECAT_InitAndScan(void)
 
   int ret;
   int w5500_retry = 0;
+  static char initmsg[] = "启动网络中...";
   
   /* 显示初始化状态 */
-  ECAT_DisplayStatus("启动网络中...", 10);
+  ECAT_DisplayStatus(initmsg, 10);
   
   /* 检查W5500 */
   if (W5500_GetVersion() != 0x04)
@@ -185,50 +188,52 @@ static int ECAT_InitAndScan(void)
     w5500_retry++;
     if (w5500_retry > 3) {
       ECAT_DisplayStatus("网络启动失败", -1);
+      HAL_Delay(2000);
     }
     return ECAT_ERROR;
   }
   
-  ECAT_DisplayStatus("启动网络中...", 30);
+  ECAT_DisplayStatus(initmsg, 30);
   
   /* 初始化EtherCAT主站 */
   ret = ECAT_Init();
   if (ret != ECAT_OK)
   {
-      ECAT_DisplayStatus("ECAT启动失败", -1);
-      return ret;
+    ECAT_DisplayStatus("ECAT启动失败", -1);
+    HAL_Delay(2000);
+    return ret;
   }
 
-  ECAT_DisplayStatus("启动网络中...", 50);
+  ECAT_DisplayStatus(initmsg, 50);
   
   /* 检查链接状态 */
   if (!W5500_GetLinkStatus())
   {
-      ECAT_DisplayStatus("连接异常", -1);
-      return ECAT_ERROR;
+    ECAT_DisplayStatus("连接异常", -1);
+    HAL_Delay(2000);
+    return ECAT_ERROR;
   }
   
   /* 扫描从站 */
-  ECAT_DisplayStatus("扫描中...", 80);
+  ECAT_DisplayStatus(initmsg, 80);
   slaveCount = ECAT_ScanSlaves();
   if (slaveCount == 0)
   {
-      ECAT_DisplayStatus("未连接到从站", -1);
-      return ECAT_NO_SLAVE;
+    ECAT_DisplayStatus("未连接到从站", -1);
+    HAL_Delay(2000);
+    return ECAT_NO_SLAVE;
   }
   
-  /* 获取第一个从站 */
+  ECAT_DisplayStatus(initmsg, 90);
   slave = ECAT_GetSlave(0);
   if (slave == NULL)
   {
-      ECAT_DisplayStatus("从站连接异常", -1);
-      return ECAT_NO_SLAVE;
+    ECAT_DisplayStatus("从站连接异常", -1);
+    HAL_Delay(2000);
+    return ECAT_NO_SLAVE;
   }
   
-  /* 显示从站数量 */
-  ECAT_DisplayStatus("启动成功", 100);
   ecatInitialized = 1;
-  HAL_Delay(500);
   
   currentPage = PAGE_MAIN;
   refreshScreen();
@@ -432,7 +437,7 @@ int showRSTENCStatus(void) {
   
   // 成功
   dialogSelectIndex = 0;
-  showDialog(0, "编码器复位成功", "");
+  showDialog(1, "编码器复位成功", "");
   btnUnlock();
   return ret;
 }
@@ -531,7 +536,6 @@ int readParam(void) {
     ECAT_DisplayStatus("读取失败", -1);
     return ret;
   }
-
 
   return ret;
 }
@@ -689,7 +693,7 @@ void showImportMenu(void) {
 }
 
 void showImportDialog(void) {
-  showDialog(0, "启动参数写入?", "");
+  showDialog(0, "参数写入?", "");
 }
 
 void showImportDataStatus(void) {
@@ -749,7 +753,28 @@ void showImportDataStatus(void) {
 }
 
 void showRSTENCDialog() {
-  showDialog(0, "启动编码器复位?", "");
+  showDialog(0, "编码器复位?", "");
+}
+
+void showFactoryRSTDialog() {
+  showDialog(0, "参数初始化?", "");
+}
+
+void showFactoryRSTStatus() {
+  btnLock();
+
+  dialogSelectIndex = 0;
+  ECAT_DisplayStatus("初始化中...", -1);
+
+  uint32_t rstFlag = 0x64616F6C;
+  int ret = ECAT_SDOWrite(slave->configAddr, 0x1011, 1, &rstFlag, 4, 2000);
+  if (ret != ECAT_OK) {
+    ECAT_DisplayStatus("初始化失败", -1);
+  } else {
+    showDialog(1, "初始化成功", "");
+  }
+
+  btnUnlock();
 }
 
 void refreshScreen(void) {
@@ -783,7 +808,11 @@ void refreshScreen(void) {
       showRSTENCDialog();
       break;
     case PAGE_RSTENC_STATUS:
-      showRSTENCStatus();
+      break;
+    case PAGE_FACTORYRST_DIALOG:
+      showFactoryRSTDialog();
+      break;
+    case PAGE_FACTORYRST_STATUS:
       break;
   }
 }
@@ -825,6 +854,12 @@ void btnStateHandle(void) {
       case PAGE_RSTENC_STATUS:
         currentPage = PAGE_MAIN;
         break;
+      case PAGE_FACTORYRST_DIALOG:
+        currentPage = PAGE_MAIN;
+        break;
+      case PAGE_FACTORYRST_STATUS:
+        currentPage = PAGE_MAIN;
+        break;
     }
   }
   if (btn_state & 0b000100) {
@@ -858,6 +893,10 @@ void btnStateHandle(void) {
         break;
       case PAGE_RSTENC_STATUS:
         break;
+      case PAGE_FACTORYRST_DIALOG:
+        break;
+      case PAGE_FACTORYRST_STATUS:
+        break;
     }
   }
   if (btn_state & 0b001000) {
@@ -888,6 +927,10 @@ void btnStateHandle(void) {
       case PAGE_RSTENC_DIALOG:
         break;
       case PAGE_RSTENC_STATUS:
+        break;
+      case PAGE_FACTORYRST_DIALOG:
+        break;
+      case PAGE_FACTORYRST_STATUS:
         break;
     }
   }
@@ -936,6 +979,12 @@ void btnStateHandle(void) {
         break;
       case PAGE_RSTENC_STATUS:
         break;
+      case PAGE_FACTORYRST_DIALOG:
+        dialogSelectIndex++;
+        dialogSelectIndex %= 2;
+        break;
+      case PAGE_FACTORYRST_STATUS:
+        break;
     }
   }
   if (btn_state & 0b100000) {
@@ -956,6 +1005,10 @@ void btnStateHandle(void) {
           case 3:
             dialogSelectIndex = 0;
             currentPage = PAGE_RSTENC_DIALOG;
+            break;
+          case 4:
+            dialogSelectIndex = 0;
+            currentPage = PAGE_FACTORYRST_DIALOG;
             break;
         }
         break;
@@ -996,6 +1049,17 @@ void btnStateHandle(void) {
         }
         break;
       case PAGE_RSTENC_STATUS:
+        currentPage = PAGE_MAIN;
+        break;
+      case PAGE_FACTORYRST_DIALOG:
+        if (dialogSelectIndex == 0) {
+          currentPage = PAGE_MAIN;
+        } else {
+          currentPage = PAGE_FACTORYRST_STATUS;
+          showFactoryRSTStatus();
+        }
+        break;
+      case PAGE_FACTORYRST_STATUS:
         currentPage = PAGE_MAIN;
         break;
     }
