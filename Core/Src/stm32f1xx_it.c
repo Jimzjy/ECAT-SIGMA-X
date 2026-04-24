@@ -41,7 +41,6 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -205,6 +204,7 @@ void SysTick_Handler(void)
 void EXTI0_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI0_IRQn 0 */
+  HAL_Delay(20);
   if (HAL_GPIO_ReadPin(GPIOB, BTN_UP_Pin) == GPIO_PIN_RESET) {
     if (!(btn_state & 1)) {
       btn_state |= 0b000100;
@@ -224,6 +224,7 @@ void EXTI0_IRQHandler(void)
 void EXTI1_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI1_IRQn 0 */
+  HAL_Delay(20);
   if (HAL_GPIO_ReadPin(GPIOB, BTN_BACK_Pin) == GPIO_PIN_RESET) {
     if (!(btn_state & 1)) {
       btn_state |= 0b000010;
@@ -256,6 +257,7 @@ void DMA1_Channel4_IRQHandler(void)
 void EXTI9_5_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI9_5_IRQn 0 */
+  HAL_Delay(20);
   if (!(btn_state & 1)) {
     if (HAL_GPIO_ReadPin(GPIOA, BTN_DOWN_Pin) == GPIO_PIN_RESET) {
       btn_state |= 0b001000;

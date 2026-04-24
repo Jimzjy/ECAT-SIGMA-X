@@ -21,7 +21,6 @@
 #include "dma.h"
 #include "i2c.h"
 #include "spi.h"
-#include "stm32f1xx_hal.h"
 #include "usart.h"
 #include "gpio.h"
 
