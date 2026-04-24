@@ -204,13 +204,6 @@ void SysTick_Handler(void)
 void EXTI0_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI0_IRQn 0 */
-  HAL_Delay(20);
-  if (HAL_GPIO_ReadPin(GPIOB, BTN_UP_Pin) == GPIO_PIN_RESET) {
-    if (!(btn_state & 1)) {
-      btn_state |= 0b000100;
-    }
-  }
-
   /* USER CODE END EXTI0_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(BTN_UP_Pin);
   /* USER CODE BEGIN EXTI0_IRQn 1 */
@@ -224,12 +217,6 @@ void EXTI0_IRQHandler(void)
 void EXTI1_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI1_IRQn 0 */
-  HAL_Delay(20);
-  if (HAL_GPIO_ReadPin(GPIOB, BTN_BACK_Pin) == GPIO_PIN_RESET) {
-    if (!(btn_state & 1)) {
-      btn_state |= 0b000010;
-    }
-  }
   /* USER CODE END EXTI1_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(BTN_BACK_Pin);
   /* USER CODE BEGIN EXTI1_IRQn 1 */
@@ -257,17 +244,6 @@ void DMA1_Channel4_IRQHandler(void)
 void EXTI9_5_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI9_5_IRQn 0 */
-  HAL_Delay(20);
-  if (!(btn_state & 1)) {
-    if (HAL_GPIO_ReadPin(GPIOA, BTN_DOWN_Pin) == GPIO_PIN_RESET) {
-      btn_state |= 0b001000;
-    } else if (HAL_GPIO_ReadPin(GPIOA, BTN_SELECT_Pin) == GPIO_PIN_RESET) {
-      btn_state |= 0b010000;
-    } else if (HAL_GPIO_ReadPin(GPIOA, BTN_CONFIRM_Pin) == GPIO_PIN_RESET) {
-      btn_state |= 0b100000;
-    }
-  }
-
   /* USER CODE END EXTI9_5_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(BTN_CONFIRM_Pin);
   HAL_GPIO_EXTI_IRQHandler(BTN_SELECT_Pin);
@@ -292,5 +268,60 @@ void USART1_IRQHandler(void)
 }
 
 /* USER CODE BEGIN 1 */
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  static uint32_t last_tick_up = 0;
+  static uint32_t last_tick_back = 0;
+  static uint32_t last_tick_down = 0;
+  static uint32_t last_tick_select = 0;
+  static uint32_t last_tick_confirm = 0;
+  uint32_t now = HAL_GetTick();
+
+  switch (GPIO_Pin) {
+  case BTN_BACK_Pin:
+    if ((now - last_tick_back) >= 20) {
+      last_tick_back = now;
+      if (HAL_GPIO_ReadPin(BTN_BACK_GPIO_Port, BTN_BACK_Pin) == GPIO_PIN_RESET) {
+        if (!(btn_state & 1)) btn_state |= 0b000010;
+      }
+    }
+    break;
+  case BTN_UP_Pin:
+    if ((now - last_tick_up) >= 20) {
+      last_tick_up = now;
+      if (HAL_GPIO_ReadPin(BTN_UP_GPIO_Port, BTN_UP_Pin) == GPIO_PIN_RESET) {
+        if (!(btn_state & 1)) btn_state |= 0b000100;
+      }
+    }
+    break;
+  case BTN_DOWN_Pin:
+    if ((now - last_tick_down) >= 20) {
+      last_tick_down = now;
+      if (HAL_GPIO_ReadPin(BTN_DOWN_GPIO_Port, BTN_DOWN_Pin) == GPIO_PIN_RESET) {
+        if (!(btn_state & 1)) btn_state |= 0b001000;
+      }
+    }
+    break;
+  case BTN_SELECT_Pin:
+    if ((now - last_tick_select) >= 20) {
+      last_tick_select = now;
+      if (HAL_GPIO_ReadPin(BTN_SELECT_GPIO_Port, BTN_SELECT_Pin) == GPIO_PIN_RESET) {
+        if (!(btn_state & 1)) btn_state |= 0b010000;
+      }
+    }
+    break;
+  case BTN_CONFIRM_Pin:
+    if ((now - last_tick_confirm) >= 20) {
+      last_tick_confirm = now;
+      if (HAL_GPIO_ReadPin(BTN_CONFIRM_GPIO_Port, BTN_CONFIRM_Pin) == GPIO_PIN_RESET) {
+        if (!(btn_state & 1)) btn_state |= 0b100000;
+      }
+    }
+    break;
+  default:
+    break;
+  }
+}
 
 /* USER CODE END 1 */
