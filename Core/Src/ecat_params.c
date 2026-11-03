@@ -30,6 +30,21 @@ const ImportParameter importParamStore_1[] = { // CNCMC800-Y
 
 const uint8_t importParamStore_1_size = sizeof(importParamStore_1) / sizeof(importParamStore_1[0]);
 
+const ImportParameter importParamStore_2[] = { // JH800-Y
+  { .paramIndex = 0x250A, .rawData = 0x8881, .dataSize = 2 },
+  { .paramIndex = 0x250B, .rawData = 0x8888, .dataSize = 2 },
+  { .paramIndex = 0x2520, .rawData = 219895608, .dataSize = 4 },
+  { .paramIndex = 0x2008, .rawData = 0x4001, .dataSize = 2 },
+  { .paramIndex = 0x200B, .rawData = 0x0100, .dataSize = 2 },
+  { .paramIndex = 0x2170, .rawData = 0x1400, .dataSize = 2 },
+  { .paramIndex = 0x220E, .rawData = 8, .dataSize = 4 },
+  { .paramIndex = 0x2210, .rawData = 1, .dataSize = 4 },
+  { .paramIndex = 0x2100, .rawData = 1500, .dataSize = 2 },
+  { .paramIndex = 0x2102, .rawData = 3500, .dataSize = 2 },
+};
+
+const uint8_t importParamStore_2_size = sizeof(importParamStore_2) / sizeof(importParamStore_2[0]);
+
 const ParameterRule parameterRules[] = {
 { .paramIndex = 0x2000, .dataSize = 2, .displayFormat = DISPLAY_FORMAT_BYTE_ARRAY, .data_min = 0x0000, .data_max = 0x10B1 },
     

@@ -52,7 +52,7 @@
 #define MENU_ITEM_HEIGHT 18
 #define MENU_TOTAL_HEIGHT 64
 #define MAIN_MENU_SIZE 5
-#define IMPORT_MENU_SIZE 2
+#define IMPORT_MENU_SIZE 3
 
 typedef struct MainMenu {
   char items[MAIN_MENU_SIZE][32];
@@ -97,7 +97,8 @@ static MainMenu mainMenu = {
 static ImportMenu importMenu = {
   .items = {
     "CNCMC800-X",
-    "CNCMC800-Y"
+    "CNCMC800-Y",
+    "JH800-Y"
   },
   .selectIndex = 0
 };
@@ -712,6 +713,9 @@ void showImportDataStatus(void) {
     importParamStore = importParamStore_1;
     importParamStore_size = importParamStore_1_size;
     break;
+  case 2:
+    importParamStore = importParamStore_2;
+    importParamStore_size = importParamStore_2_size;
   default:
     break;
   }

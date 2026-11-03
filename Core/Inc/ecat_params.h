@@ -38,6 +38,8 @@ extern const ImportParameter importParamStore_0[];
 extern const uint8_t importParamStore_0_size;
 extern const ImportParameter importParamStore_1[];
 extern const uint8_t importParamStore_1_size;
+extern const ImportParameter importParamStore_2[];
+extern const uint8_t importParamStore_2_size;
 
 extern const ParameterRule parameterRules[];
 extern const uint16_t parameterRules_size;
